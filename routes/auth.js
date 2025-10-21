@@ -7,11 +7,27 @@ const router = express.Router();
 const otpStore = new Map();
 
 // Send OTP
-router.post('/send-otp', (req, res) => {
-  const { email, phone } = req.body;
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  otpStore.set(email || phone, { otp, expires: Date.now() + 300000 });
-  res.json({ message: 'OTP sent successfully', otp }); // Remove otp in production
+router.post('/send-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    await sendEmail(
+        email,
+        'OTP Verification',
+        `Your OTP for MITS Canteen is: ${otp}`
+    );
+
+    // Store OTP in session or database as per your implementation
+    otpStore.set(email, { otp, expires: Date.now() + 300000 });
+    res.status(200).json({ message: 'OTP sent successfully' });
+  } catch (error) {
+    console.error('OTP send error:', error);
+    res.status(500).json({ 
+        error: 'Failed to send OTP',
+        details: error.message 
+    });
+  }
 });
 
 // Register
