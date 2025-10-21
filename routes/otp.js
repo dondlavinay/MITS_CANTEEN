@@ -2,23 +2,6 @@ const express = require('express');
 const nodemailer = require('nodemailer');
 const router = express.Router();
 
-// Create transporter for sending emails
-const createTransporter = () => {
-  return nodemailer.createTransporter({
-    service: 'Gmail',
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    },
-    tls: {
-      rejectUnauthorized: false
-    }
-  });
-};
-
 // Send OTP endpoint
 router.post('/send-otp', async (req, res) => {
   try {
@@ -33,12 +16,19 @@ router.post('/send-otp', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email and OTP required' });
     }
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.error('Email credentials missing');
-      return res.status(500).json({ success: false, message: 'Email service not configured' });
-    }
-
-    const transporter = createTransporter();
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
     
     const mailOptions = {
       from: `"MITS Canteen" <${process.env.EMAIL_USER}>`,
@@ -61,7 +51,13 @@ router.post('/send-otp', async (req, res) => {
 // Test email endpoint
 router.post('/test-email', async (req, res) => {
   try {
-    const transporter = createTransporter();
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
     
     const testMail = {
       from: `"MITS Canteen" <${process.env.EMAIL_USER}>`,
