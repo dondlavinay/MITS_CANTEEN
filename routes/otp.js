@@ -4,17 +4,18 @@ const router = express.Router();
 
 // Create transporter for sending emails
 const createTransporter = () => {
-  return nodemailer.createTransport({
+  return nodemailer.createTransporter({
     service: 'Gmail',
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS
     },
-    debug: true,
-    logger: true
+    tls: {
+      rejectUnauthorized: false
+    }
   });
 };
 
@@ -23,18 +24,21 @@ router.post('/send-otp', async (req, res) => {
   try {
     const { email, otp } = req.body;
     console.log('OTP Request received:', { email, otp });
+    console.log('Environment check:', {
+      EMAIL_USER: process.env.EMAIL_USER ? 'Set' : 'Missing',
+      EMAIL_PASS: process.env.EMAIL_PASS ? 'Set' : 'Missing'
+    });
     
     if (!email || !otp) {
       return res.status(400).json({ success: false, message: 'Email and OTP required' });
     }
 
-    const transporter = nodemailer.createTransport({
-      service: 'Gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.error('Email credentials missing');
+      return res.status(500).json({ success: false, message: 'Email service not configured' });
+    }
+
+    const transporter = createTransporter();
     
     const mailOptions = {
       from: `"MITS Canteen" <${process.env.EMAIL_USER}>`,
@@ -49,8 +53,8 @@ router.post('/send-otp', async (req, res) => {
     res.json({ success: true, message: 'OTP sent successfully' });
     
   } catch (error) {
-    console.error('OTP send error:', error.message);
-    res.status(500).json({ success: false, message: error.message });
+    console.error('OTP send error:', error);
+    res.status(500).json({ success: false, message: 'Failed to send OTP. Please try again.' });
   }
 });
 
