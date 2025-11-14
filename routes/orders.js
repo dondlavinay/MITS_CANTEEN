@@ -138,6 +138,11 @@ router.post('/check-utr', auth, async (req, res) => {
   }
 });
 
+// Test rating endpoint
+router.get('/:id/rating-test', (req, res) => {
+  res.json({ message: 'Rating endpoint works', orderId: req.params.id });
+});
+
 // Add rating to order
 router.put('/:id/rating', auth, async (req, res) => {
   console.log('Rating endpoint hit:', req.params.id, req.body);
