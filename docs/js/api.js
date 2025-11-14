@@ -11,7 +11,7 @@ try {
   // ignore
 }
 
-const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3005/api' : '/api';
+const API_BASE_URL = '/api';
 
 class API {
   static getToken() {
