@@ -165,7 +165,7 @@ router.put('/:id/rating', auth, async (req, res) => {
       return res.status(400).json({ message: 'Rating must be between 1 and 5' });
     }
     
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('items.menuItem');
     
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
@@ -182,6 +182,18 @@ router.put('/:id/rating', auth, async (req, res) => {
     order.rating = rating;
     if (review) order.review = review;
     await order.save();
+    
+    // Update menu item ratings
+    for (const item of order.items) {
+      const menuItem = await MenuItem.findById(item.menuItem._id);
+      if (menuItem) {
+        if (!menuItem.ratings) menuItem.ratings = [];
+        menuItem.ratings.push(rating);
+        menuItem.totalRatings = menuItem.ratings.length;
+        menuItem.averageRating = menuItem.ratings.reduce((a, b) => a + b, 0) / menuItem.ratings.length;
+        await menuItem.save();
+      }
+    }
     
     res.json({ message: 'Rating submitted successfully' });
   } catch (error) {
