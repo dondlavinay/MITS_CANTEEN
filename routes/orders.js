@@ -143,9 +143,15 @@ router.get('/:id/rating-test', (req, res) => {
   res.json({ message: 'Rating endpoint works', orderId: req.params.id });
 });
 
+// Test orders route
+router.get('/test', (req, res) => {
+  res.json({ message: 'Orders route is working' });
+});
+
 // Add rating to order
 router.put('/:id/rating', auth, async (req, res) => {
   console.log('Rating endpoint hit:', req.params.id, req.body);
+  console.log('User:', req.user?._id);
   try {
     const { rating, review } = req.body;
     

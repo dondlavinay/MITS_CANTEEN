@@ -431,7 +431,7 @@
       try {
         const review = document.getElementById('review-text').value;
         
-        const apiUrl = `/api/orders/${currentOrderId}/rating`;
+        const apiUrl = `/api/orders/${currentOrderId}/rating?v=${Date.now()}`;
         
         const response = await fetch(apiUrl, {
           method: 'PUT',
