@@ -429,13 +429,21 @@
       }
       
       try {
+        // Test server connectivity first
+        await API.healthCheck();
+        
         const review = document.getElementById('review-text').value;
         await API.rateOrder(currentOrderId, selectedRating, review);
         alert('Thank you for your rating!');
         closeRatingModal();
         loadUserOrders();
       } catch (error) {
-        alert('Error submitting rating: ' + error.message);
+        console.error('Rating error:', error);
+        if (error.message.includes('Route not found')) {
+          alert('Rating feature is temporarily unavailable. The server may be restarting.');
+        } else {
+          alert('Error submitting rating: ' + error.message);
+        }
       }
     }
   </script>

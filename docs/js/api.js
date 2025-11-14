@@ -40,12 +40,21 @@ class API {
 
     try {
       const response = await fetch(url, config);
-      const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong');
+        const text = await response.text();
+        if (text.includes('<!DOCTYPE')) {
+          throw new Error(`Server error: ${response.status} - Route not found`);
+        }
+        try {
+          const data = JSON.parse(text);
+          throw new Error(data.message || 'Something went wrong');
+        } catch {
+          throw new Error(`Server error: ${response.status}`);
+        }
       }
       
+      const data = await response.json();
       return data;
     } catch (error) {
       throw error;
@@ -166,6 +175,10 @@ class API {
       method: 'PUT',
       body: JSON.stringify({ rating, review })
     });
+  }
+
+  static async healthCheck() {
+    return this.request('/health');
   }
 
   // Upload endpoint
