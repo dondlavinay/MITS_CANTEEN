@@ -13,6 +13,18 @@ const orderSchema = new mongoose.Schema({
   status: { type: String, enum: ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'], default: 'pending' },
   deliveryAddress: { type: String },
   deliveryTime: { type: String },
+  deliveryLocation: {
+    latitude: { type: Number },
+    longitude: { type: Number }
+  },
+  deliveryPerson: {
+    name: { type: String },
+    phone: { type: String },
+    currentLocation: {
+      latitude: { type: Number },
+      longitude: { type: Number }
+    }
+  },
   paymentMethod: { type: String, enum: ['Cash on Delivery', 'UPI'], default: 'Cash on Delivery' },
   paymentDetails: { type: String, unique: true, sparse: true, validate: { validator: function(v) { return !v || /^[A-Za-z0-9]{12}$/.test(v); }, message: 'UTR ID must be 12 alphanumeric characters' } },
   orderDate: { type: Date, default: Date.now }
