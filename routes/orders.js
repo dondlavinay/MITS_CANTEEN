@@ -138,6 +138,40 @@ router.post('/check-utr', auth, async (req, res) => {
   }
 });
 
+// Add rating to order
+router.put('/:id/rating', auth, async (req, res) => {
+  console.log('Rating endpoint hit:', req.params.id, req.body);
+  try {
+    const { rating, review } = req.body;
+    
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+    }
+    
+    const order = await Order.findById(req.params.id);
+    
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+    
+    if (order.status !== 'delivered') {
+      return res.status(400).json({ message: 'Can only rate delivered orders' });
+    }
+    
+    order.rating = rating;
+    if (review) order.review = review;
+    await order.save();
+    
+    res.json({ message: 'Rating submitted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Cancel order
 // Cancel order (user, only if pending)
 router.delete('/:id', auth, async (req, res) => {

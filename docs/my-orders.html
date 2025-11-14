@@ -137,6 +137,46 @@
     .status-ready { background: #d1fae5; color: #065f46; }
     .status-delivered { background: #dcfce7; color: #166534; }
     .status-cancelled { background: #fee2e2; color: #dc2626; }
+    
+    .star-rating .star {
+      font-size: 2rem;
+      cursor: pointer;
+      color: #ccc;
+      transition: all 0.3s ease;
+      filter: grayscale(100%);
+    }
+    .star-rating .star.active {
+      color: #ffd700;
+      filter: grayscale(0%);
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+      transform: scale(1.1);
+    }
+    .star-rating .star:hover:not(.active) {
+      color: #ddd;
+      transform: scale(1.05);
+    }
+    .order-rating {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 10px;
+      background: #f9f9f9;
+      border-radius: 5px;
+    }
+    .rating-stars {
+      color: #ffd700;
+      font-size: 1.2rem;
+    }
+    .rate-btn {
+      background: #ff9800;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
@@ -181,6 +221,31 @@
     </div>
   </div>
 
+  <!-- Rating Modal -->
+  <div id="rating-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 90%;">
+      <h3 style="text-align: center; margin-bottom: 20px; color: #1e40af;">Rate Your Order</h3>
+      
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div class="star-rating" id="star-rating">
+          <span class="star" data-rating="1">⭐</span>
+          <span class="star" data-rating="2">⭐</span>
+          <span class="star" data-rating="3">⭐</span>
+          <span class="star" data-rating="4">⭐</span>
+          <span class="star" data-rating="5">⭐</span>
+        </div>
+        <p id="rating-text" style="margin-top: 10px; color: #666; font-weight: bold;">Click stars to rate (1-5 stars)</p>
+      </div>
+      
+      <textarea id="review-text" placeholder="Write your review (optional)" style="width: 100%; height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: none; box-sizing: border-box;"></textarea>
+      
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button onclick="closeRatingModal()" style="flex: 1; padding: 10px; border: 1px solid #ddd; background: white; border-radius: 5px; cursor: pointer;">Cancel</button>
+        <button onclick="submitRating()" style="flex: 1; padding: 10px; background: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer;">Submit</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/api.js"></script>
   <script>
     let allOrders = [];
@@ -216,15 +281,25 @@
           `${item.menuItem.name} (${item.quantity})`
         ).join(', ');
         let actionButton = '-';
+        let ratingDisplay = '';
+        
         if (order.status === 'pending') {
           actionButton = `<button class="cancel-btn" onclick="cancelOrder('${order._id}')">Cancel</button>`;
         } else if (order.status === 'delivered') {
-          actionButton = `<button class="remove-btn" onclick="removeOrder('${order._id}')">Remove</button>`;
+          if (order.rating) {
+            ratingDisplay = `<div class="order-rating"><span class="rating-stars">${'⭐'.repeat(order.rating)}</span><span>${order.rating}/5</span></div>`;
+            if (order.review) {
+              ratingDisplay += `<div style="font-style: italic; margin-top: 5px;">"${order.review}"</div>`;
+            }
+          } else {
+            actionButton = `<button class="rate-btn" onclick="showRatingModal('${order._id}')">⭐ Rate</button>`;
+          }
+          actionButton += ` <button class="remove-btn" onclick="removeOrder('${order._id}')">Remove</button>`;
         }
         return `
           <tr data-order-id="${order._id}">
             <td>#${order._id.slice(-6)}</td>
-            <td>${itemsList}</td>
+            <td>${itemsList}${ratingDisplay}</td>
             <td>
               <small>
                 Room: ${order.deliveryAddress || 'N/A'}<br>
@@ -303,6 +378,88 @@
       }
       loadUserOrders();
     });
+    
+    // Rating functionality
+    let currentOrderId = null;
+    let selectedRating = 0;
+    
+    function showRatingModal(orderId) {
+      currentOrderId = orderId;
+      selectedRating = 0;
+      document.getElementById('rating-modal').style.display = 'block';
+      document.getElementById('review-text').value = '';
+      updateStarDisplay();
+    }
+    
+    function closeRatingModal() {
+      document.getElementById('rating-modal').style.display = 'none';
+      currentOrderId = null;
+      selectedRating = 0;
+    }
+    
+    function updateStarDisplay() {
+      const stars = document.querySelectorAll('.star');
+      const ratingText = document.getElementById('rating-text');
+      
+      stars.forEach((star, index) => {
+        if (index < selectedRating) {
+          star.classList.add('active');
+        } else {
+          star.classList.remove('active');
+        }
+      });
+      
+      const ratingTexts = ['', '1 Star - Poor', '2 Stars - Fair', '3 Stars - Good', '4 Stars - Very Good', '5 Stars - Excellent'];
+      ratingText.textContent = selectedRating > 0 ? ratingTexts[selectedRating] : 'Click stars to rate (1-5 stars)';
+    }
+    
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('star')) {
+        selectedRating = parseInt(e.target.dataset.rating);
+        updateStarDisplay();
+      }
+    });
+    
+    async function submitRating() {
+      if (selectedRating === 0) {
+        alert('Please select a rating');
+        return;
+      }
+      
+      try {
+        const review = document.getElementById('review-text').value;
+        
+        const apiUrl = window.location.hostname === 'localhost' 
+          ? `http://localhost:3005/api/orders/${currentOrderId}/rating`
+          : `/api/orders/${currentOrderId}/rating`;
+        
+        const response = await fetch(apiUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            rating: selectedRating,
+            review: review
+          })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Server error:', errorText);
+          throw new Error(`Server error: ${response.status}`);
+        }
+        
+        const responseData = await response.json();
+        
+        alert('Thank you for your rating!');
+        closeRatingModal();
+        loadUserOrders();
+      } catch (error) {
+        alert('Error submitting rating: ' + error.message);
+      }
+    }
   </script>
 </body>
 </html>

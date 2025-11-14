@@ -1,0 +1,157 @@
+<!-- Rating Modal -->
+<div id="rating-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 90%;">
+        <h3 style="text-align: center; margin-bottom: 20px; color: #1e40af;">Rate Your Order</h3>
+        
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div class="star-rating" id="star-rating">
+                <span class="star" data-rating="1">⭐</span>
+                <span class="star" data-rating="2">⭐</span>
+                <span class="star" data-rating="3">⭐</span>
+                <span class="star" data-rating="4">⭐</span>
+                <span class="star" data-rating="5">⭐</span>
+            </div>
+            <p id="rating-text" style="margin-top: 10px; color: #666;">Click stars to rate</p>
+        </div>
+        
+        <textarea id="review-text" placeholder="Write your review (optional)" style="width: 100%; height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: none; box-sizing: border-box;"></textarea>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="closeRatingModal()" style="flex: 1; padding: 10px; border: 1px solid #ddd; background: white; border-radius: 5px; cursor: pointer;">Cancel</button>
+            <button onclick="submitRating()" style="flex: 1; padding: 10px; background: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer;">Submit</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.star-rating .star {
+    font-size: 2rem;
+    cursor: pointer;
+    color: #ddd;
+    transition: color 0.2s;
+}
+.star-rating .star.active,
+.star-rating .star:hover {
+    color: #ffd700;
+}
+.order-rating {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 5px;
+}
+.rating-stars {
+    color: #ffd700;
+    font-size: 1.2rem;
+}
+</style>
+
+<script>
+let currentOrderId = null;
+let selectedRating = 0;
+
+// Show rating modal
+function showRatingModal(orderId) {
+    currentOrderId = orderId;
+    selectedRating = 0;
+    document.getElementById('rating-modal').style.display = 'block';
+    document.getElementById('review-text').value = '';
+    updateStarDisplay();
+}
+
+// Close rating modal
+function closeRatingModal() {
+    document.getElementById('rating-modal').style.display = 'none';
+    currentOrderId = null;
+    selectedRating = 0;
+}
+
+// Update star display
+function updateStarDisplay() {
+    const stars = document.querySelectorAll('.star');
+    const ratingText = document.getElementById('rating-text');
+    
+    stars.forEach((star, index) => {
+        if (index < selectedRating) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+    
+    const ratingTexts = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+    ratingText.textContent = selectedRating > 0 ? ratingTexts[selectedRating] : 'Click stars to rate';
+}
+
+// Handle star clicks
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('star')) {
+        selectedRating = parseInt(e.target.dataset.rating);
+        updateStarDisplay();
+    }
+});
+
+// Submit rating
+async function submitRating() {
+    if (selectedRating === 0) {
+        alert('Please select a rating');
+        return;
+    }
+    
+    try {
+        const review = document.getElementById('review-text').value;
+        
+        const response = await fetch(`/api/orders/${currentOrderId}/rating`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+                rating: selectedRating,
+                review: review
+            })
+        });
+        
+        if (response.ok) {
+            alert('Thank you for your rating!');
+            closeRatingModal();
+            // Refresh the page to show the rating
+            location.reload();
+        } else {
+            throw new Error('Failed to submit rating');
+        }
+    } catch (error) {
+        alert('Error submitting rating: ' + error.message);
+    }
+}
+
+// Display rating for delivered orders
+function displayOrderRating(order, container) {
+    if (order.status === 'delivered') {
+        if (order.rating) {
+            // Show existing rating
+            const ratingDiv = document.createElement('div');
+            ratingDiv.className = 'order-rating';
+            ratingDiv.innerHTML = `
+                <span class="rating-stars">${'⭐'.repeat(order.rating)}</span>
+                <span>Your Rating: ${order.rating}/5</span>
+                ${order.review ? `<p style="margin: 5px 0 0 0; font-style: italic;">"${order.review}"</p>` : ''}
+            `;
+            container.appendChild(ratingDiv);
+        } else {
+            // Show rate button
+            const rateBtn = document.createElement('button');
+            rateBtn.textContent = '⭐ Rate this order';
+            rateBtn.className = 'button';
+            rateBtn.style.background = '#ff9800';
+            rateBtn.style.marginTop = '10px';
+            rateBtn.onclick = () => showRatingModal(order._id);
+            container.appendChild(rateBtn);
+        }
+    }
+}
+</script>

@@ -238,6 +238,10 @@
                         <img src="${item.image || 'images/default-food.jpg'}" alt="${item.name}" class="food-icon" onerror="this.src='images/default-food.jpg'">
                         <div class="food-name">${item.name}</div>
                         <div class="food-price">₹${item.price}</div>
+                        <div class="item-rating" style="margin: 8px 0; text-align: center; font-size: 0.9rem;">
+                          <div style="color: #ddd;">⭐⭐⭐⭐⭐</div>
+                          <div style="color: #666; margin-top: 2px; font-size: 0.8rem;">No ratings yet</div>
+                        </div>
                         <div class="snack-actions">
                             <input type="number" id="qty-${item._id}" min="1" value="1" style="width:60px;">
                             <button class="button" onclick="addToCart('${item.name}', 'qty-${item._id}');return false;">add to cart</button>

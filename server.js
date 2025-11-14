@@ -134,6 +134,7 @@ app.use('/api/upload', require('./routes/upload'));
 app.use('/api/menu', require('./routes/menu'));
 app.use('/api', require('./routes/otp'));
 app.use('/api/tracking', require('./routes/tracking'));
+app.use('/api/ratings', require('./routes/ratings'));
 // Extra protection: reject unauthenticated POST requests to orders early
 app.use('/api/orders', (req, res, next) => {
   // If this is a POST to create an order and there's no Authorization header,
