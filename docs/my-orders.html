@@ -431,9 +431,7 @@
       try {
         const review = document.getElementById('review-text').value;
         
-        const apiUrl = window.location.hostname === 'localhost' 
-          ? `http://localhost:3005/api/orders/${currentOrderId}/rating`
-          : `/api/orders/${currentOrderId}/rating`;
+        const apiUrl = `/api/orders/${currentOrderId}/rating`;
         
         const response = await fetch(apiUrl, {
           method: 'PUT',

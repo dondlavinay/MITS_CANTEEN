@@ -135,16 +135,7 @@ app.use('/api/menu', require('./routes/menu'));
 app.use('/api', require('./routes/otp'));
 app.use('/api/tracking', require('./routes/tracking'));
 app.use('/api/ratings', require('./routes/ratings'));
-// Extra protection: reject unauthenticated POST requests to orders early
-app.use('/api/orders', (req, res, next) => {
-  // If this is a POST to create an order and there's no Authorization header,
-  // block it immediately before route handlers to ensure unauthenticated
-  // clients cannot bypass auth by other means.
-  if (req.method === 'POST' && !req.headers.authorization) {
-    return res.status(401).json({ message: 'Authentication required' });
-  }
-  next();
-}, require('./routes/orders'));
+app.use('/api/orders', require('./routes/orders'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
