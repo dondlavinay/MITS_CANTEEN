@@ -71,10 +71,11 @@
 
         // Initialize map
         function initMap() {
-            map = L.map('map').setView(mitsCanteen, 15);
+            map = L.map('map').setView(mitsCanteen, 17);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 20
             }).addTo(map);
 
             // Add canteen marker
@@ -243,18 +244,24 @@
             const btn = document.getElementById('satellite-btn');
             
             if (!isSatelliteView) {
-                // Switch to satellite view
-                satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                    attribution: '© Esri, Maxar, Earthstar Geographics'
-                });
-                
+                // Switch to satellite view with labels
                 map.eachLayer(function(layer) {
                     if (layer instanceof L.TileLayer) {
                         map.removeLayer(layer);
                     }
                 });
                 
-                satelliteLayer.addTo(map);
+                // Add satellite imagery
+                satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: '© Esri, Maxar, Earthstar Geographics',
+                    maxZoom: 20
+                }).addTo(map);
+                
+                // Add labels overlay
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: '',
+                    maxZoom: 20
+                }).addTo(map);
                 btn.textContent = '🗺️ Street View';
                 btn.style.background = '#2196f3';
                 isSatelliteView = true;
