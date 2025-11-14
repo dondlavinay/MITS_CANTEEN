@@ -53,6 +53,7 @@
         
         <div style="text-align: center; margin-top: 20px;">
             <button onclick="shareLocation()" class="button" style="background: #4caf50;">📍 Share My Location</button>
+            <button onclick="toggleSatellite()" class="button" style="background: #ff9800; margin-left: 10px;" id="satellite-btn">🛰️ Satellite View</button>
             <button onclick="refreshTracking()" class="button" style="background: #2196f3; margin-left: 10px;">🔄 Refresh</button>
         </div>
     </div>
@@ -62,6 +63,7 @@
     <script>
         let map, userMarker, deliveryMarker, routeControl;
         let orderId = new URLSearchParams(window.location.search).get('orderId');
+        let satelliteLayer, isSatelliteView = false;
         
         // MITS Campus coordinates
         const mitsCanteen = [13.629686, 78.479767];
@@ -234,6 +236,40 @@
         // Share location function
         function shareLocation() {
             getUserLocation();
+        }
+
+        // Toggle satellite view
+        function toggleSatellite() {
+            const btn = document.getElementById('satellite-btn');
+            
+            if (!isSatelliteView) {
+                // Switch to satellite view
+                satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: '© Esri, Maxar, Earthstar Geographics'
+                });
+                
+                map.eachLayer(function(layer) {
+                    if (layer instanceof L.TileLayer) {
+                        map.removeLayer(layer);
+                    }
+                });
+                
+                satelliteLayer.addTo(map);
+                btn.textContent = '🗺️ Street View';
+                btn.style.background = '#2196f3';
+                isSatelliteView = true;
+            } else {
+                // Switch back to street view
+                map.removeLayer(satelliteLayer);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+                
+                btn.textContent = '🛰️ Satellite View';
+                btn.style.background = '#ff9800';
+                isSatelliteView = false;
+            }
         }
 
         // Refresh tracking
