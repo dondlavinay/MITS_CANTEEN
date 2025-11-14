@@ -251,15 +251,9 @@
                     }
                 });
                 
-                // Add satellite imagery
-                satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                    attribution: '© Esri, Maxar, Earthstar Geographics',
-                    maxZoom: 20
-                }).addTo(map);
-                
-                // Add labels overlay
-                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-                    attribution: '',
+                // Add satellite imagery with labels
+                satelliteLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                    attribution: '© Google',
                     maxZoom: 20
                 }).addTo(map);
                 btn.textContent = '🗺️ Street View';
