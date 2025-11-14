@@ -255,6 +255,7 @@
     async function loadUserOrders() {
       try {
         allOrders = await API.getMyOrders();
+        console.log('Loaded orders:', allOrders); // Debug log
         displayOrders();
       } catch (error) {
         console.error('Failed to load orders:', error);
@@ -286,15 +287,16 @@
         if (order.status === 'pending') {
           actionButton = `<button class="cancel-btn" onclick="cancelOrder('${order._id}')">Cancel</button>`;
         } else if (order.status === 'delivered') {
+          console.log('Order rating check:', order._id, order.rating, order.review);
           if (order.rating) {
             ratingDisplay = `<div class="order-rating"><span class="rating-stars">${'⭐'.repeat(order.rating)}</span><span>${order.rating}/5</span></div>`;
             if (order.review) {
               ratingDisplay += `<div style="font-style: italic; margin-top: 5px;">"${order.review}"</div>`;
             }
+            actionButton = `<button class="remove-btn" onclick="removeOrder('${order._id}')">Remove</button>`;
           } else {
-            actionButton = `<button class="rate-btn" onclick="showRatingModal('${order._id}')">⭐ Rate</button>`;
+            actionButton = `<button class="rate-btn" onclick="showRatingModal('${order._id}')">⭐ Rate</button> <button class="remove-btn" onclick="removeOrder('${order._id}')">Remove</button>`;
           }
-          actionButton += ` <button class="remove-btn" onclick="removeOrder('${order._id}')">Remove</button>`;
         }
         return `
           <tr data-order-id="${order._id}">
