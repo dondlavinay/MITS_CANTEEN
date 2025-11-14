@@ -7,27 +7,11 @@ const router = express.Router();
 const otpStore = new Map();
 
 // Send OTP
-router.post('/send-otp', async (req, res) => {
-  try {
-    const { email } = req.body;
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    await sendEmail(
-        email,
-        'OTP Verification',
-        `Your OTP for MITS Canteen is: ${otp}`
-    );
-
-    // Store OTP in session or database as per your implementation
-    otpStore.set(email, { otp, expires: Date.now() + 300000 });
-    res.status(200).json({ message: 'OTP sent successfully' });
-  } catch (error) {
-    console.error('OTP send error:', error);
-    res.status(500).json({ 
-        error: 'Failed to send OTP',
-        details: error.message 
-    });
-  }
+router.post('/send-otp', (req, res) => {
+  const { email, phone } = req.body;
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  otpStore.set(email || phone, { otp, expires: Date.now() + 300000 });
+  res.json({ message: 'OTP sent successfully', otp }); // Remove otp in production
 });
 
 // Register
@@ -74,16 +58,20 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password, role, studentId, staffId } = req.body;
+    console.log('Login attempt:', { email, role, studentId: !!studentId, staffId: !!staffId });
 
     if (!email || !password || !role) {
+      console.log('Missing required fields:', { email: !!email, password: !!password, role: !!role });
       return res.status(400).json({ message: 'Email, password and role are required' });
     }
 
     if (role === 'Student' && !studentId) {
+      console.log('Student ID missing for student login');
       return res.status(400).json({ message: 'Student ID is required for students' });
     }
 
     if (role === 'Staff' && !staffId) {
+      console.log('Staff ID missing for staff login');
       return res.status(400).json({ message: 'Staff ID is required for staff' });
     }
 
