@@ -161,6 +161,13 @@ class API {
     });
   }
 
+  static async rateOrder(orderId, rating, review) {
+    return this.request(`/orders/${orderId}/rating`, {
+      method: 'PUT',
+      body: JSON.stringify({ rating, review })
+    });
+  }
+
   // Upload endpoint
   static async uploadImage(formData) {
     const response = await fetch(`${API_BASE_URL}/upload/image`, {

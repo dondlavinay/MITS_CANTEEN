@@ -181,4 +181,6 @@ server.listen(PORT, () => {
   console.log(`🌐 Frontend: http://localhost:${PORT}`);
   console.log(`📡 API: http://localhost:${PORT}/api`);
   console.log(`🔄 Real-time updates enabled`);
+  console.log('📋 Registered routes:');
+  console.log('  - /api/orders (with rating endpoint)');
 });

@@ -5,6 +5,12 @@ const auth = require('../middleware/auth');
 
 const router = express.Router();
 
+// Debug route
+router.all('*', (req, res, next) => {
+  console.log(`Orders route: ${req.method} ${req.path}`);
+  next();
+});
+
 // Create new order
 router.post('/', auth, async (req, res) => {
   try {

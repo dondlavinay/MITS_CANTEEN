@@ -430,29 +430,7 @@
       
       try {
         const review = document.getElementById('review-text').value;
-        
-        const apiUrl = `/api/orders/${currentOrderId}/rating?v=${Date.now()}`;
-        
-        const response = await fetch(apiUrl, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({
-            rating: selectedRating,
-            review: review
-          })
-        });
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Server error:', errorText);
-          throw new Error(`Server error: ${response.status}`);
-        }
-        
-        const responseData = await response.json();
-        
+        await API.rateOrder(currentOrderId, selectedRating, review);
         alert('Thank you for your rating!');
         closeRatingModal();
         loadUserOrders();
