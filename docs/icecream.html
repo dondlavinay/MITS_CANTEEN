@@ -233,22 +233,31 @@
                     return;
                 }
                 
-                foodList.innerHTML = menuItems.map(item => `
-                    <li data-item="${item.name.toLowerCase().replace(/\s+/g, '-')}" data-item-id="${item._id}">
-                        <img src="${item.image || 'images/default-food.jpg'}" alt="${item.name}" class="food-icon" onerror="this.src='images/default-food.jpg'">
-                        <div class="food-name">${item.name}</div>
-                        <div class="food-price">₹${item.price}</div>
-                        <div class="item-rating" style="margin: 8px 0; text-align: center; font-size: 0.9rem;">
-                          <div style="color: #ddd;">⭐⭐⭐⭐⭐</div>
-                          <div style="color: #666; margin-top: 2px; font-size: 0.8rem;">No ratings yet</div>
-                        </div>
-                        <div class="snack-actions">
-                            <input type="number" id="qty-${item._id}" min="1" value="1" style="width:60px;">
-                            <button class="button" onclick="addToCart('${item.name}', 'qty-${item._id}');return false;">add to cart</button>
-                            <button class="button" onclick="orderNow('${item.name}');return false;">Order Now</button>
-                        </div>
-                    </li>
-                `).join('');
+                foodList.innerHTML = menuItems.map(item => {
+                    const avgRating = item.averageRating || 0;
+                    const totalRatings = item.totalRatings || 0;
+                    const ratingDisplay = avgRating > 0 
+                        ? `<div style="color: #ffd700;">${'⭐'.repeat(Math.round(avgRating))}${'☆'.repeat(5-Math.round(avgRating))}</div>
+                           <div style="color: #666; margin-top: 2px; font-size: 0.8rem;">${avgRating.toFixed(1)} (${totalRatings} reviews)</div>`
+                        : `<div style="color: #ddd;">⭐⭐⭐⭐⭐</div>
+                           <div style="color: #666; margin-top: 2px; font-size: 0.8rem;">No ratings yet</div>`;
+                    
+                    return `
+                        <li data-item="${item.name.toLowerCase().replace(/\s+/g, '-')}" data-item-id="${item._id}">
+                            <img src="${item.image || 'images/default-food.jpg'}" alt="${item.name}" class="food-icon" onerror="this.src='images/default-food.jpg'">
+                            <div class="food-name">${item.name}</div>
+                            <div class="food-price">₹${item.price}</div>
+                            <div class="item-rating" style="margin: 8px 0; text-align: center; font-size: 0.9rem;">
+                              ${ratingDisplay}
+                            </div>
+                            <div class="snack-actions">
+                                <input type="number" id="qty-${item._id}" min="1" value="1" style="width:60px;">
+                                <button class="button" onclick="addToCart('${item.name}', 'qty-${item._id}');return false;">add to cart</button>
+                                <button class="button" onclick="orderNow('${item.name}');return false;">Order Now</button>
+                            </div>
+                        </li>
+                    `;
+                }).join('');
             } catch (error) {
                 console.error('Failed to load menu items:', error);
             }
